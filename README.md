@@ -38,6 +38,17 @@ explore the orbits of thousands of active satellites across our planet, where ea
 - Backend: FastAPI, Supabase PostgreSQL
 - Data Source: CelesTrak Orbital Database
 - Deployment: Vercel, Render
+
+## Supabase Security Setup
+
+If Supabase Security Advisor reports RLS warnings on `public.categories`, `public.satellites`, `public.orbital_elements`, or `public.satellite_category_map`:
+
+1. Open Supabase SQL Editor and run `backend/supabase/security_hardening.sql`.
+2. Set backend env vars:
+	- `SUPABASE_URL`
+	- `SUPABASE_SERVICE_ROLE_KEY` (recommended for server-side writes)
+	- `CACHE_ADMIN_TOKEN` (required for `/satellites/cache` route)
+3. Keep `SUPABASE_SERVICE_ROLE_KEY` server-side only. Never expose it in frontend code.
       
 ## How It Works
 

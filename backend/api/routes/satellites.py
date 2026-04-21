@@ -1,15 +1,27 @@
 from fastapi import APIRouter, HTTPException, Query, Request
-from typing import List, Optional
+from postgrest.exceptions import APIError
 from services.satellite_service import get_satellites_by_group, get_satellite_by_id
-from models.satellite import SatelliteData
+from core.config import settings
 
 from services.supabase_service import supabase 
 
 router = APIRouter()
 
-  
-@router.api_route("/satellites/cache", methods=["GET", "POST"])
-async def cache_satellites(group: str = Query(..., description="CelesTrak group name")):
+
+def _require_cache_admin_token(request: Request) -> None:
+    expected_token = settings.cache_admin_token
+    if not expected_token:
+        raise HTTPException(
+            status_code=503,
+            detail="Cache refresh is disabled. Configure CACHE_ADMIN_TOKEN to enable it.",
+        )
+
+    provided_token = request.headers.get("x-cache-admin-token")
+    if not provided_token or provided_token != expected_token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+async def _cache_satellites_impl(group: str):
     fetched_data = get_satellites_by_group(group)
     
     if not fetched_data:
@@ -77,9 +89,18 @@ async def cache_satellites(group: str = Query(..., description="CelesTrak group 
 
         return {"status": "success", "satellites_updated": len(fetched_data)}
         
-    except Exception as e:
+    except (APIError, KeyError, TypeError, ValueError) as e:
         print(f"Cache Error: {str(e)}")
         return {"status": "error", "details": str(e)}
+
+
+@router.post("/satellites/cache")
+async def cache_satellites(
+    request: Request,
+    group: str = Query(..., description="CelesTrak group name"),
+):
+    _require_cache_admin_token(request)
+    return await _cache_satellites_impl(group)
 
 
 @router.get("/satellites")
@@ -130,7 +151,7 @@ async def list_satellites(
         print(f"Serving '{group}' from database.")
         return format_db_data(db_response.data)
     print(f"Data for '{group}' not found. Fetching from CelesTrak...")
-    cache_result = await cache_satellites(group=group)
+    cache_result = await _cache_satellites_impl(group=group)
     
     if cache_result.get("status") == "success":
         updated_db = supabase.table("satellites") \
@@ -184,7 +205,7 @@ async def get_satellite(satellite_norad_id: str):
             "mean_motion_ddot": live_sat.get("MEAN_MOTION_DDOT")
         }, on_conflict="norad_cat_id").execute()
 
-    except Exception as e:
+    except (APIError, KeyError, TypeError, ValueError) as e:
         print(f"Error auto-caching single satellite: {e}")
     
     return live_sat

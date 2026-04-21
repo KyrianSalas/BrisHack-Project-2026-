@@ -448,7 +448,7 @@ sharedTrailMaterial.resolution.set(window.innerWidth, window.innerHeight);
 function getSatelliteCountryKey(jsonData) {
   const name = (jsonData.OBJECT_NAME || '').toUpperCase();
 
-  // Russia
+  // 1. Soviet / Russian
   // COSMOS, SL- (Soviet launchers), INTERCOSMOS, RESURS, OKEAN, ZARYA (ISS module)
   if (name.includes('COSMOS') || name.startsWith('SL-') ||
     name.includes('INTERCOSMOS') || name.includes('RESURS') ||
@@ -456,7 +456,7 @@ function getSatelliteCountryKey(jsonData) {
     return 'russia';
   }
 
-  // China
+  // 2. Chinese
   // CZ- (Long March), SHIJIAN, YAOGAN, HXMT, CSS (Chinese Space Station), SZ- (Shenzhou)
   if (name.startsWith('CZ-') || name.includes('SHIJIAN') ||
     name.includes('YAOGAN') || name.includes('HXMT') ||
@@ -464,14 +464,14 @@ function getSatelliteCountryKey(jsonData) {
     return 'china';
   }
 
-  // EU and stuff
+  // 3. European Space Agency / Arianespace
   // ARIANE, ENVISAT, HELIOS
   if (name.includes('ARIANE') || name.includes('ENVISAT') || 
       name.includes('HELIOS') || name.includes('ONEWEB')) {
     return 'esa';
   }
 
-  // Japan
+  // 4. Japanese
   // H-2A (Launcher), ALOS, ASTRO, AJISAI, MIDORI, XRISM
   if (name.includes('H-2A') || name.includes('ALOS') ||
     name.includes('ASTRO') || name.includes('AJISAI') ||
@@ -479,7 +479,7 @@ function getSatelliteCountryKey(jsonData) {
     return 'japan';
   }
 
-  // USA
+  // 5. United States / NASA / Commercial US
   // ATLAS, DELTA, THOR, TITAN, USA, OAO, SERT, SEASAT, AQUA, HST, ACS3
   if (name.includes('ATLAS') || name.includes('DELTA') ||
     name.includes('THOR') || name.includes('TITAN') ||
@@ -489,7 +489,7 @@ function getSatelliteCountryKey(jsonData) {
     return 'us';
   }
 
-  // India
+  // 6. Indian
   // GSLV
   if (name.includes('GSLV') || name.includes('INSAT')) {
     return 'india';
@@ -1774,7 +1774,7 @@ function startCalloutTyping(title, details) {
   calloutTyping.lastStepMs = performance.now();
   infoTitle.textContent = '';
   satelliteDetails.textContent = '';
-
+  
   if (calloutTextSpeedMode === 'disabled') {
     applyCalloutTextSpeed('disabled');
     return;
@@ -2110,7 +2110,6 @@ function selectStorm(stormData) {
     calloutReveal.active = false;
     calloutReveal.progress = 0;
     infoBox.classList.remove('visible');
-
     const targetDistance = 2;
     const duration = 1000;
     const startTime = Date.now();
